@@ -3,353 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pizarra de Series — Solucionador automático de EDOs</title>
+<title>Pizarra de Series — Solucionador automático de EDOs (cualquier orden 1 o 2)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --board:#16231f;
-    --board-deep:#0f1a16;
-    --panel:#1c2b26;
-    --rail:#26372f;
-    --chalk:#eee7d6;
-    --chalk-dim:#b9c2ba;
-    --chalk-yellow:#e8c468;
-    --chalk-coral:#e2725b;
-    --chalk-teal:#7fb8ab;
-    --line-faint:rgba(238,231,214,0.08);
-    --line-faint-2:rgba(238,231,214,0.14);
-    --radius:3px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(ellipse at 20% 0%, rgba(127,184,171,0.06), transparent 60%),
-      radial-gradient(ellipse at 90% 90%, rgba(226,114,91,0.05), transparent 55%),
-      var(--board);
-    color:var(--chalk);
-    font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;
-    padding:32px 20px 64px;
-  }
-  .wrap{max-width:1180px;margin:0 auto;}
-
-  /* ---------- HERO ---------- */
-  .hero{
-    border-bottom:1px solid var(--line-faint-2);
-    padding-bottom:28px;
-    margin-bottom:34px;
-    position:relative;
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11.5px;
-    letter-spacing:0.16em;
-    text-transform:uppercase;
-    color:var(--chalk-teal);
-    margin:0 0 14px;
-  }
-  h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:clamp(28px, 4.4vw, 46px);
-    line-height:1.08;
-    margin:0 0 12px;
-    letter-spacing:-0.01em;
-  }
-  h1 em{
-    font-style:italic;
-    font-weight:500;
-    color:var(--chalk-yellow);
-  }
-  .hero p{
-    font-size:15.5px;
-    line-height:1.6;
-    color:var(--chalk-dim);
-    max-width:640px;
-    margin:0;
-  }
-  .hero-formula{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
-    color:var(--chalk-coral);
-    margin-top:16px;
-    letter-spacing:0.02em;
-  }
-
-  /* ---------- LAYOUT ---------- */
-  .grid{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:22px;
-    align-items:start;
-  }
-  @media (max-width:900px){
-    .grid{grid-template-columns:1fr;}
-  }
-
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--line-faint-2);
-    border-radius:var(--radius);
-    padding:22px;
-  }
-  .panel + .panel{margin-top:22px;}
-  .panel-highlight{
-    border-left:3px solid var(--chalk-yellow);
-    background:linear-gradient(180deg, rgba(232,196,104,0.06), transparent 40%), var(--panel);
-  }
-
-  .panel-title{
-    font-family:'Fraunces', serif;
-    font-size:17px;
-    font-weight:600;
-    margin:0 0 4px;
-    color:var(--chalk);
-  }
-  .panel-sub{
-    font-size:12.5px;
-    color:var(--chalk-dim);
-    margin:0 0 18px;
-    line-height:1.5;
-  }
-
-  /* ---------- FORM ---------- */
-  .order-toggle{
-    display:flex;
-    gap:8px;
-    margin-bottom:18px;
-  }
-  .order-toggle button{
-    flex:1;
-    background:transparent;
-    border:1px solid var(--line-faint-2);
-    color:var(--chalk-dim);
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    padding:9px 6px;
-    border-radius:var(--radius);
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .order-toggle button.active{
-    border-color:var(--chalk-teal);
-    color:var(--chalk-teal);
-    background:rgba(127,184,171,0.08);
-  }
-
-  label{
-    display:block;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.04em;
-    color:var(--chalk-dim);
-    margin:14px 0 6px;
-  }
-  label .hint{color:var(--chalk-teal); text-transform:none; letter-spacing:0;}
-  input[type=text], input[type=number]{
-    width:100%;
-    background:var(--board-deep);
-    border:1px solid var(--line-faint-2);
-    color:var(--chalk);
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13.5px;
-    padding:9px 10px;
-    border-radius:var(--radius);
-    outline:none;
-  }
-  input:focus{border-color:var(--chalk-yellow);}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-
-  .field-note{
-    font-size:11px;
-    color:var(--chalk-dim);
-    opacity:0.75;
-    margin-top:4px;
-  }
-
-  .presets{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-    margin-top:18px;
-  }
-  .preset-stub{
-    background:transparent;
-    border:1px dashed var(--line-faint-2);
-    color:var(--chalk-dim);
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    padding:6px 9px;
-    border-radius:20px;
-    cursor:pointer;
-  }
-  .preset-stub:hover{border-color:var(--chalk-yellow); color:var(--chalk-yellow);}
-
-  .solve-btn{
-    width:100%;
-    margin-top:22px;
-    background:var(--chalk-coral);
-    color:#1a120e;
-    border:none;
-    font-family:'IBM Plex Mono', monospace;
-    font-weight:600;
-    font-size:13.5px;
-    letter-spacing:0.03em;
-    padding:13px;
-    border-radius:var(--radius);
-    cursor:pointer;
-    transition:transform .1s ease, box-shadow .15s ease;
-  }
-  .solve-btn:hover{box-shadow:0 0 0 3px rgba(226,114,91,0.18);}
-  .solve-btn:active{transform:translateY(1px);}
-
-  .error-box{
-    margin-top:14px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    color:var(--chalk-coral);
-    display:none;
-  }
-
-  /* ---------- STEPS ---------- */
-  .empty-state{
-    color:var(--chalk-dim);
-    font-size:13.5px;
-    line-height:1.7;
-    padding:10px 0 4px;
-  }
-  .step{
-    display:grid;
-    grid-template-columns:34px 1fr;
-    gap:14px;
-    padding:16px 0;
-    border-top:1px solid var(--line-faint);
-  }
-  .step:first-of-type{border-top:none;}
-  .step-num{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-size:20px;
-    color:var(--chalk-yellow);
-    line-height:1.2;
-  }
-  .step-title{
-    font-family:'IBM Plex Sans', sans-serif;
-    font-weight:600;
-    font-size:13.5px;
-    margin:0 0 6px;
-    color:var(--chalk);
-  }
-  .step-body{
-    font-size:13px;
-    color:var(--chalk-dim);
-    line-height:1.7;
-  }
-  .math{
-    font-family:'IBM Plex Mono', monospace;
-    color:var(--chalk-teal);
-    background:var(--board-deep);
-    display:block;
-    padding:10px 12px;
-    border-radius:var(--radius);
-    margin:8px 0;
-    overflow-x:auto;
-    white-space:pre;
-    font-size:12.5px;
-    border:1px solid var(--line-faint);
-  }
-  .math-highlight{
-    color:var(--chalk-yellow);
-    border-color:rgba(232,196,104,0.35);
-  }
-  .recognized-tag{
-    display:inline-block;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:#1a120e;
-    background:var(--chalk-yellow);
-    padding:2px 8px;
-    border-radius:20px;
-    margin-left:6px;
-  }
-
-  /* ---------- TABLE ---------- */
-  table{
-    width:100%;
-    border-collapse:collapse;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;
-    margin-top:6px;
-  }
-  th,td{
-    text-align:left;
-    padding:7px 10px;
-    border-bottom:1px solid var(--line-faint);
-  }
-  th{
-    color:var(--chalk-dim);
-    font-weight:500;
-    font-size:11px;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
-  }
-  td.coef{color:var(--chalk-yellow);}
-
-  /* ---------- PLOT ---------- */
-  .plot-toolbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:10px;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  .legend{
-    display:flex;
-    gap:16px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11.5px;
-    color:var(--chalk-dim);
-  }
-  .legend span{display:inline-flex; align-items:center; gap:6px;}
-  .swatch{width:14px;height:2px;display:inline-block;}
-  canvas{
-    width:100%;
-    background:var(--board-deep);
-    border:1px solid var(--line-faint);
-    border-radius:var(--radius);
-    display:block;
-  }
-  #plotCanvas{height:360px;}
-  #errorCanvas{height:200px;}
-  .plot-note{
-    font-size:11.5px;
-    color:var(--chalk-dim);
-    margin-top:8px;
-    line-height:1.6;
-  }
-  #errorWrap{margin-top:18px; display:none;}
-
-  footer{
-    margin-top:44px;
-    padding-top:18px;
-    border-top:1px solid var(--line-faint);
-    font-size:11.5px;
-    color:var(--chalk-dim);
-    font-family:'IBM Plex Mono', monospace;
-  }
-</style>
+<link rel="stylesheet" href="style.css">
+<script>
+  // Aplica el tema guardado antes de pintar, para evitar parpadeo (FOUC)
+  (function(){
+    var saved = localStorage.getItem('pizarra-theme');
+    var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
 </head>
 <body>
 <div class="wrap">
 
   <div class="hero">
-    <p class="eyebrow">Método de series de potencia · resolución simbólica automática</p>
+    <button type="button" class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar entre tema claro y oscuro">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.5"></circle>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"></path>
+      </svg>
+    </button>
+    <p class="eyebrow">Método de series de potencia y Frobenius · resolución simbólica automática</p>
     <h1>Pizarra de <em>series</em> para ecuaciones diferenciales</h1>
-    <p>Define tu ecuación — de primer o segundo orden, con coeficientes polinómicos alrededor de <strong>x₀ = 0</strong> — y el programa arma la relación de recurrencia, calcula los coeficientes aₙ, construye la <strong>solución general</strong> y traza la solución, explicando cada paso del proceso.</p>
-    <p class="hero-formula">y = Σ aₙxⁿ -> sustituir -> igualar coeficientes -> recurrencia -> solución general -> solución particular</p>
+    <p>Define tu ecuación de primer o <strong>segundo orden, con coeficientes polinómicos arbitrarios</strong> (no necesariamente 1 delante de y''). El programa detecta si x₀ = 0 es un <strong>punto ordinario</strong> o un <strong>punto singular regular</strong>, arma la relación de recurrencia (o la ecuación indicial y el método de Frobenius, según corresponda) y construye la solución general — siguiendo el capítulo de soluciones en serie para ecuaciones diferenciales lineales.</p>
+    <p class="hero-formula">P₀(x)y'' + P₁(x)y' + P₂(x)y = G(x)  ->  clasificar x₀=0  ->  (dividir entre P₀ | ecuación indicial)  ->  recurrencia  ->  solución general</p>
   </div>
 
   <div class="grid">
@@ -360,12 +43,13 @@
       <p class="panel-sub">Los coeficientes se ingresan como polinomios en x, separados por comas, empezando en x⁰. Ej: "0,1" significa 0 + 1·x = x.</p>
 
       <div class="order-toggle">
-        <button type="button" id="btnOrder1" class="active">Orden 1 &nbsp;·&nbsp; y' = A(x)y + B(x)</button>
-        <button type="button" id="btnOrder2">Orden 2 &nbsp;·&nbsp; y''+P(x)y'+Q(x)y=R(x)</button>
+        <button type="button" id="btnOrder1" class="active">Orden 1</button>
+        <button type="button" id="btnOrder2">Orden 2 (cualquier P₀,P₁,P₂)</button>
       </div>
 
       <!-- Orden 1 fields -->
       <div id="fieldsOrder1">
+        <p class="field-note" style="margin-top:0;">y' = A(x)·y + B(x)</p>
         <label>A(x) — coeficientes <span class="hint">(multiplica a y)</span></label>
         <input type="text" id="A_coef" value="1">
         <label>B(x) — coeficientes <span class="hint">(término libre)</span></label>
@@ -380,28 +64,32 @@
 
       <!-- Orden 2 fields -->
       <div id="fieldsOrder2" style="display:none;">
-        <label>P(x) — coeficientes <span class="hint">(multiplica a y')</span></label>
-        <input type="text" id="P_coef" value="0">
-        <label>Q(x) — coeficientes <span class="hint">(multiplica a y)</span></label>
-        <input type="text" id="Q_coef" value="1">
-        <label>R(x) — coeficientes <span class="hint">(término libre)</span></label>
-        <input type="text" id="R_coef" value="0">
+        <p class="field-note" style="margin-top:0;">P₀(x)·y'' + P₁(x)·y' + P₂(x)·y = G(x)</p>
+        <label>P₀(x) — coeficientes <span class="hint">(multiplica a y'', puede tener raíz en 0)</span></label>
+        <input type="text" id="P0_coef" value="1">
+        <label>P₁(x) — coeficientes <span class="hint">(multiplica a y')</span></label>
+        <input type="text" id="P1_coef" value="0">
+        <label>P₂(x) — coeficientes <span class="hint">(multiplica a y)</span></label>
+        <input type="text" id="P2_coef" value="1">
+        <label>G(x) — coeficientes <span class="hint">(término libre / no homogéneo)</span></label>
+        <input type="text" id="G_coef" value="0">
         <div class="row2">
           <div>
-            <label>y(0)</label>
+            <label>y(0) <span class="hint">(solo si x₀ es ordinario)</span></label>
             <input type="number" id="y0_2" value="0" step="any">
           </div>
           <div>
-            <label>y'(0)</label>
+            <label>y'(0) <span class="hint">(solo si x₀ es ordinario)</span></label>
             <input type="number" id="y1_2" value="1" step="any">
           </div>
         </div>
+        <p class="field-note">Si P₀(0) = 0, la herramienta trata x₀=0 como punto singular y aplica el método de Frobenius (no se piden y(0), y'(0): se muestra la familia de soluciones para x&gt;0).</p>
       </div>
 
       <div class="row2">
         <div>
           <label>Términos de la serie (N)</label>
-          <input type="number" id="nTerms" value="12" min="4" max="26">
+          <input type="number" id="nTerms" value="14" min="4" max="30">
         </div>
         <div>
           <label>Rango de la gráfica ±x</label>
@@ -411,7 +99,7 @@
 
       <label>Solución exacta conocida <span class="hint">(opcional, en JS: exp, sin, cos, sqrt…)</span></label>
       <input type="text" id="exactSol" placeholder="ej: exp(x)   ó   sin(x)">
-      <p class="field-note">Se usa solo para comparar visualmente y calcular el error. Déjalo vacío: la herramienta intenta reconocer la solución automáticamente.</p>
+      <p class="field-note">Se usa solo para comparar visualmente y calcular el error (solo aplica en puntos ordinarios). Déjalo vacío: la herramienta intenta reconocer la solución automáticamente.</p>
 
       <p class="field-note" style="margin-top:16px;">Presets:</p>
       <div class="presets">
@@ -420,6 +108,10 @@
         <button class="preset-stub" data-preset="sin">y''+y=0  →  sin x</button>
         <button class="preset-stub" data-preset="cosh">y''−y=0  →  cosh x</button>
         <button class="preset-stub" data-preset="airy">Airy: y''=xy</button>
+        <button class="preset-stub" data-preset="legendre">Legendre: (1−x²)y''−2xy'+6y=0</button>
+        <button class="preset-stub" data-preset="frobenius1">Frobenius: xy''+2y'+9xy=0</button>
+        <button class="preset-stub" data-preset="frobenius2">Frobenius: xy''+2y'−4xy=0</button>
+        <button class="preset-stub" data-preset="eulerlog">Euler-Cauchy (raíz doble): x²y''+3xy'+y=0</button>
       </div>
 
       <button class="solve-btn" id="solveBtn">Resolver por series de potencia →</button>
@@ -430,21 +122,22 @@
     <div>
 
       <div class="panel">
-        <p class="panel-title">Resolución paso a paso</p>
+        <p class="panel-title">Clasificación y resolución paso a paso</p>
         <p class="panel-sub">Derivación completa, generada automáticamente para la ecuación que definiste.</p>
+        <div id="classificationBadge"></div>
         <div id="stepsContainer">
-          <p class="empty-state">Todavía no hay una ecuación resuelta. Completa el formulario de la izquierda y presiona "Resolver por series de potencia" para ver aquí la derivación completa: la serie propuesta, la sustitución, la relación de recurrencia y los coeficientes calculados.</p>
+          <p class="empty-state">Todavía no hay una ecuación resuelta. Completa el formulario de la izquierda y presiona "Resolver por series de potencia" para ver aquí la clasificación del punto x₀=0 (ordinario / singular regular / singular irregular) y la derivación completa.</p>
         </div>
       </div>
 
       <div class="panel panel-highlight" id="generalSolPanel" style="display:none;">
-        <p class="panel-title">Solución general de la ecuación</p>
-        <p class="panel-sub">Familia completa de soluciones, construida a partir del teorema de existencia de soluciones en series de potencia alrededor de un punto ordinario.</p>
+        <p class="panel-title" id="generalSolTitle">Solución general de la ecuación</p>
+        <p class="panel-sub" id="generalSolSub">Familia completa de soluciones, construida a partir del teorema de existencia de soluciones en series de potencia alrededor de un punto ordinario.</p>
         <div id="generalSolBody"></div>
       </div>
 
       <div class="panel" id="tablePanel" style="display:none;">
-        <p class="panel-title">Coeficientes aₙ</p>
+        <p class="panel-title" id="tableTitle">Coeficientes aₙ</p>
         <p class="panel-sub">Calculados mediante la relación de recurrencia obtenida.</p>
         <div style="overflow-x:auto;">
           <table id="coefTable"></table>
@@ -456,7 +149,8 @@
         <div class="plot-toolbar">
           <p class="panel-sub" style="margin:0;">Serie truncada, tiza sobre pizarra.</p>
           <div class="legend">
-            <span><i class="swatch" style="background:var(--chalk-coral);"></i>Serie de potencia</span>
+            <span><i class="swatch" style="background:var(--chalk-coral);"></i><span id="legendSeriesLabel">Serie de potencia</span></span>
+            <span id="legendSecond" style="display:none;"><i class="swatch" style="background:var(--chalk-violet);"></i>y₂ (Frobenius)</span>
             <span id="legendExact" style="display:none;"><i class="swatch" style="background:var(--chalk-teal);"></i>Solución exacta</span>
           </div>
         </div>
@@ -472,570 +166,9 @@
     </div>
   </div>
 
-  <footer>Pizarra de series · coeficientes polinómicos ⇒ x₀=0 siempre es punto ordinario ⇒ radio de convergencia infinito.</footer>
+  <footer>Pizarra de series · P₀(0)≠0 ⇒ punto ordinario (radio de convergencia ≥ distancia a la singularidad más cercana) · P₀(0)=0 ⇒ se evalúa punto singular regular/irregular y ecuación indicial (método de Frobenius).</footer>
 </div>
 
-<script>
-(function(){
-
-  // ---------------------------------------------------------
-  // 1. ESTADO Y CONTROLES DE ORDEN
-  // ---------------------------------------------------------
-  let order = 1;
-  const btnOrder1 = document.getElementById('btnOrder1');
-  const btnOrder2 = document.getElementById('btnOrder2');
-  const fieldsOrder1 = document.getElementById('fieldsOrder1');
-  const fieldsOrder2 = document.getElementById('fieldsOrder2');
-
-  btnOrder1.addEventListener('click', () => setOrder(1));
-  btnOrder2.addEventListener('click', () => setOrder(2));
-
-  function setOrder(n){
-    order = n;
-    btnOrder1.classList.toggle('active', n===1);
-    btnOrder2.classList.toggle('active', n===2);
-    fieldsOrder1.style.display = n===1 ? 'block' : 'none';
-    fieldsOrder2.style.display = n===2 ? 'block' : 'none';
-  }
-
-  // ---------------------------------------------------------
-  // 2. PRESETS
-  // ---------------------------------------------------------
-  const presets = {
-    exp:    {order:1, A:'1',   B:'0', y0:'1',            exact:'exp(x)'},
-    expx2:  {order:1, A:'0,2', B:'0', y0:'1',            exact:'exp(x*x)'},
-    sin:    {order:2, P:'0',   Q:'1', R:'0', y0:'0', y1:'1', exact:'sin(x)'},
-    cosh:   {order:2, P:'0',   Q:'-1', R:'0', y0:'1', y1:'0', exact:'cosh(x)'},
-    airy:   {order:2, P:'0',   Q:'0,-1', R:'0', y0:'1', y1:'0', exact:''}
-  };
-
-  document.querySelectorAll('.preset-stub').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const p = presets[btn.dataset.preset];
-      setOrder(p.order);
-      if(p.order===1){
-        document.getElementById('A_coef').value = p.A;
-        document.getElementById('B_coef').value = p.B;
-        document.getElementById('y0_1').value = p.y0;
-      } else {
-        document.getElementById('P_coef').value = p.P;
-        document.getElementById('Q_coef').value = p.Q;
-        document.getElementById('R_coef').value = p.R;
-        document.getElementById('y0_2').value = p.y0;
-        document.getElementById('y1_2').value = p.y1;
-      }
-      document.getElementById('exactSol').value = p.exact;
-    });
-  });
-
-  // ---------------------------------------------------------
-  // 3. MOTOR MATEMÁTICO: parseo y recurrencias
-  // ---------------------------------------------------------
-  function parseCoeffs(str){
-    if(!str || !str.trim()) return [0];
-    const arr = str.split(',').map(s=>parseFloat(s.trim()));
-    if(arr.some(v=>isNaN(v))) throw new Error('Coeficientes inválidos: usa números separados por comas.');
-    return arr;
-  }
-
-  function solveOrder1(A,B,y0,N){
-    const a = new Array(N+1).fill(0);
-    a[0]=y0;
-    for(let n=0;n<=N-1;n++){
-      let sum=0;
-      for(let i=0;i<=n;i++) sum += (A[i]||0)*a[n-i];
-      const Bn = B[n]||0;
-      a[n+1] = (sum+Bn)/(n+1);
-    }
-    return a;
-  }
-
-  function solveOrder2(P,Q,R,y0,y1,N){
-    const a = new Array(N+1).fill(0);
-    a[0]=y0; a[1]=y1;
-    for(let n=0;n<=N-2;n++){
-      let sum1=0;
-      for(let i=0;i<=n;i++) sum1 += (P[i]||0)*(n-i+1)*(a[n-i+1]||0);
-      let sum2=0;
-      for(let i=0;i<=n;i++) sum2 += (Q[i]||0)*(a[n-i]||0);
-      const Rn = R[n]||0;
-      a[n+2] = (Rn - sum1 - sum2) / ((n+2)*(n+1));
-    }
-    return a;
-  }
-
-  // ---------------------------------------------------------
-  // 3b. RECONOCIMIENTO DE FUNCIONES ELEMENTALES (para la solución general)
-  // ---------------------------------------------------------
-  function factorial(n){ let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
-
-  const knownSeries = [
-    {name:'eˣ',       gen:n=> 1/factorial(n)},
-    {name:'e⁻ˣ',      gen:n=> (n%2===0?1:-1)/factorial(n)},
-    {name:'cos(x)',   gen:n=> (n%2!==0)?0:(((n/2)%2===0)?1:-1)/factorial(n)},
-    {name:'sin(x)',   gen:n=> (n%2!==1)?0:((((n-1)/2)%2===0)?1:-1)/factorial(n)},
-    {name:'cosh(x)',  gen:n=> (n%2!==0)?0:1/factorial(n)},
-    {name:'senh(x)',  gen:n=> (n%2!==1)?0:1/factorial(n)}
-  ];
-
-  function recognizeSeries(coefs){
-    for(const cand of knownSeries){
-      let ok = true;
-      for(let n=0;n<coefs.length;n++){
-        const expected = cand.gen(n);
-        const tol = 1e-6*Math.max(1,Math.abs(expected)) + 1e-9;
-        if(Math.abs(coefs[n]-expected) > tol){ ok=false; break; }
-      }
-      if(ok) return cand.name;
-    }
-    return null;
-  }
-
-  // ---------------------------------------------------------
-  // 4. FORMATEO NUMÉRICO (fracciones simples cuando es posible)
-  // ---------------------------------------------------------
-  function toFraction(x, tol){
-    tol = tol || 1e-7;
-    if(Math.abs(x) < tol) return '0';
-    const sign = x<0 ? '-' : '';
-    x = Math.abs(x);
-    let h1=1,h0=0,k1=0,k0=1,b=x;
-    for(let i=0;i<24;i++){
-      const a = Math.floor(b);
-      const h2 = a*h1+h0, k2 = a*k1+k0;
-      h0=h1; h1=h2; k0=k1; k1=k2;
-      if(Math.abs(x - h1/k1) < tol*x) break;
-      if(Math.abs(b-a) < 1e-12) break;
-      b = 1/(b-a);
-    }
-    if(k1===1) return sign+h1.toString();
-    if(k1>2000) return null; // denominador muy grande, mejor decimal
-    return sign+h1+'/'+k1;
-  }
-
-  function formatCoef(x){
-    const frac = toFraction(x);
-    const dec = (Math.abs(x) < 1e-9) ? '0' : x.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
-    if(frac !== null && frac.length <= 9) return frac + '  (' + dec + ')';
-    return dec;
-  }
-
-  function polyToString(coefs){
-    const terms = [];
-    coefs.forEach((c,i)=>{
-      if(Math.abs(c) < 1e-12) return;
-      let t = (i===0) ? formatSimple(c) : (formatSimple(Math.abs(c)) + (i===1 ? 'x' : 'x^'+i));
-      if(i>0 && c<0) t = '-'+t; else if(i>0 && c>=0 && terms.length>0) t = '+'+t;
-      terms.push(t);
-    });
-    return terms.length ? terms.join(' ').replace(/\+-/,'-') : '0';
-  }
-  function formatSimple(c){
-    return (Math.abs(c-Math.round(c))<1e-9) ? Math.round(c).toString() : c.toString();
-  }
-
-  // ---------------------------------------------------------
-  // 5. GENERAR EXPLICACIÓN PASO A PASO
-  // ---------------------------------------------------------
-  function buildSteps(cfg){
-    const steps = [];
-
-    steps.push({
-      title:'Se propone la solución en serie',
-      body:`Alrededor del punto ordinario x₀ = 0 (los coeficientes son polinomios, es decir, funciones analíticas en todo x), se asume que la solución tiene la forma:`,
-      math:`y(x) = Σ aₙxⁿ  =  a₀ + a₁x + a₂x² + a₃x³ + ...`
-    });
-
-    if(cfg.order===1){
-      steps.push({
-        title:'Se deriva término a término',
-        body:`Derivando la serie propuesta y reindexando con k = n − 1:`,
-        math:`y' = Σ (n)aₙx^(n-1)  =  Σ (k+1)a_(k+1)x^k`
-      });
-      steps.push({
-        title:'Se sustituye en la ecuación',
-        body:`La ecuación ingresada es y' = A(x)·y + B(x), con A(x) = ${polyToString(cfg.A)} y B(x) = ${polyToString(cfg.B)}. Sustituyendo la serie de y y de y' y expandiendo el producto A(x)·y como un producto de series (convolución de Cauchy):`,
-        math:`Σ(k+1)a_(k+1)x^k  =  A(x)·Σaₙxⁿ + B(x)`
-      });
-      steps.push({
-        title:'Se igualan los coeficientes de xⁿ',
-        body:`Para que ambas series sean iguales para todo x, el coeficiente de xⁿ debe coincidir en ambos lados. Esto produce la relación de recurrencia general:`,
-        math:`a_(n+1) = [ Σ_{i=0}^{n} A_i · a_(n-i)  +  B_n ] / (n+1)`
-      });
-    } else {
-      steps.push({
-        title:'Se deriva dos veces',
-        body:`Derivando la serie propuesta dos veces y reindexando cada una:`,
-        math:`y'  = Σ (k+1)a_(k+1)x^k\ny'' = Σ (k+2)(k+1)a_(k+2)x^k`
-      });
-      steps.push({
-        title:'Se sustituye en la ecuación',
-        body:`La ecuación ingresada es y'' + P(x)·y' + Q(x)·y = R(x), con P(x) = ${polyToString(cfg.P)}, Q(x) = ${polyToString(cfg.Q)} y R(x) = ${polyToString(cfg.R)}. Sustituyendo y expandiendo los productos P(x)·y' y Q(x)·y como convoluciones de Cauchy:`,
-        math:`Σ(n+2)(n+1)a_(n+2)xⁿ + P(x)·Σ(n+1)a_(n+1)xⁿ + Q(x)·Σaₙxⁿ  =  R(x)`
-      });
-      steps.push({
-        title:'Se igualan los coeficientes de xⁿ',
-        body:`Igualando el coeficiente de xⁿ en ambos lados se obtiene la relación de recurrencia general para ecuaciones de segundo orden:`,
-        math:`a_(n+2) = [ R_n − Σ_{i=0}^{n} P_i(n-i+1)a_(n-i+1) − Σ_{i=0}^{n} Q_i·a_(n-i) ] / [(n+2)(n+1)]`
-      });
-    }
-
-    steps.push({
-      title:'Se fijan los coeficientes libres con las condiciones iniciales',
-      body: cfg.order===1
-        ? `El único coeficiente libre es a₀ = y(0) = ${cfg.y0}. A partir de él, la recurrencia genera todos los demás.`
-        : `Los coeficientes libres son a₀ = y(0) = ${cfg.y0} y a₁ = y'(0) = ${cfg.y1}. A partir de ellos, la recurrencia genera todos los demás.`,
-      math:null
-    });
-
-    let coefLines = cfg.a.map((val,n)=>`a_${n} = ${formatCoef(val)}`).join('\n');
-    steps.push({
-      title:'Se calculan los coeficientes por recurrencia',
-      body:`Aplicando la fórmula anterior sucesivamente para n = 0, 1, 2, ... se obtienen los primeros ${cfg.a.length} coeficientes:`,
-      math: coefLines
-    });
-
-    steps.push({
-      title:'Solución particular en serie de potencia',
-      body:`Sustituyendo los coeficientes en la serie propuesta, la solución aproximada (truncada a ${cfg.a.length} términos) que satisface las condiciones iniciales dadas es:`,
-      math: buildSeriesString(cfg.a)
-    });
-
-    steps.push({
-      title:'Convergencia',
-      body:`Como A(x)${cfg.order===2 ? ', P(x), Q(x)' : ' y B(x)'} son polinomios, son funciones enteras (analíticas en todo ℝ). Por lo tanto x₀ = 0 es punto ordinario y el radio de convergencia de la serie solución es infinito: la aproximación mejora en cualquier x con solo aumentar el número de términos.`,
-      math:null
-    });
-
-    return steps;
-  }
-
-  function buildSeriesString(a){
-    const parts = [];
-    a.forEach((c,n)=>{
-      if(Math.abs(c) < 1e-12) return;
-      const frac = toFraction(c);
-      const coefStr = (frac && frac.length<=7) ? frac : c.toFixed(5).replace(/0+$/,'').replace(/\.$/,'');
-      let term;
-      if(n===0) term = coefStr;
-      else if(n===1) term = `(${coefStr})x`;
-      else term = `(${coefStr})x^${n}`;
-      parts.push(term);
-    });
-    return 'y(x) ≈ ' + (parts.length ? parts.join(' + ').replace(/\+\s\(-/g,'- (') : '0') + ' + ...';
-  }
-
-  // Serie recortada (para mostrar y_h, y_p, y1, y2 sin saturar el panel)
-  function trimSeriesString(a, maxNonzero){
-    maxNonzero = maxNonzero || 8;
-    const parts = [];
-    let count = 0;
-    for(let n=0; n<a.length && count<maxNonzero; n++){
-      const c = a[n];
-      if(Math.abs(c) < 1e-12) continue;
-      const frac = toFraction(c);
-      const coefStr = (frac && frac.length<=7) ? frac : c.toFixed(5).replace(/0+$/,'').replace(/\.$/,'');
-      let term;
-      if(n===0) term = coefStr;
-      else if(n===1) term = `(${coefStr})x`;
-      else term = `(${coefStr})x^${n}`;
-      parts.push(term);
-      count++;
-    }
-    return (parts.length ? parts.join(' + ').replace(/\+\s\(-/g,'- (') : '0') + ' + ...';
-  }
-
-  function renderSteps(steps){
-    const container = document.getElementById('stepsContainer');
-    container.innerHTML = '';
-    steps.forEach((s,idx)=>{
-      const div = document.createElement('div');
-      div.className='step';
-      div.innerHTML = `
-        <div class="step-num">${String(idx+1).padStart(2,'0')}</div>
-        <div>
-          <p class="step-title">${s.title}</p>
-          <p class="step-body">${s.body}</p>
-          ${s.math ? `<code class="math">${s.math}</code>` : ''}
-        </div>`;
-      container.appendChild(div);
-    });
-  }
-
-  // ---------------------------------------------------------
-  // 5b. CONSTRUCCIÓN Y RENDER DE LA SOLUCIÓN GENERAL
-  //     (Teorema de existencia: y = C·y_h + y_p  ó  y = C1 y1 + C2 y2 [+ yp])
-  // ---------------------------------------------------------
-  function buildGeneralOrder1(cfg,N){
-    const yh = solveOrder1(cfg.A, [0], 1, N);         // base homogénea: y_h(0)=1
-    const yp = solveOrder1(cfg.A, cfg.B, 0, N);       // solución particular: y_p(0)=0
-    const recognized = recognizeSeries(yh);
-    const hasP = yp.some(v=>Math.abs(v)>1e-12);
-    return {yh,yp,recognized,hasP};
-  }
-
-  function buildGeneralOrder2(cfg,N){
-    const y1 = solveOrder2(cfg.P,cfg.Q,[0], 1,0,N);   // base homogénea 1: y1(0)=1, y1'(0)=0
-    const y2 = solveOrder2(cfg.P,cfg.Q,[0], 0,1,N);   // base homogénea 2: y2(0)=0, y2'(0)=1
-    const hasR = cfg.R.some(v=>Math.abs(v)>1e-12);
-    const yp = hasR ? solveOrder2(cfg.P,cfg.Q,cfg.R, 0,0,N) : null; // particular: yp(0)=yp'(0)=0
-    const rec1 = recognizeSeries(y1);
-    const rec2 = recognizeSeries(y2);
-    return {y1,y2,yp,hasR,rec1,rec2};
-  }
-
-  function renderGeneralSolution(cfg,N){
-    const panel = document.getElementById('generalSolPanel');
-    const body = document.getElementById('generalSolBody');
-    let html = '';
-
-    if(cfg.order===1){
-      const g = buildGeneralOrder1(cfg,N);
-      html += `<p class="step-body">El conjunto de soluciones de la ecuación homogénea asociada y' = A(x)y tiene dimensión uno. Por lo tanto la solución general de y' = A(x)y + B(x) es:</p>`;
-      html += `<code class="math math-highlight">y(x)  =  C · y_h(x)  +  y_p(x)</code>`;
-      html += `<p class="step-body">donde y_h es la solución de la ecuación homogénea con y_h(0) = 1, y y_p es una solución particular con y_p(0) = 0:</p>`;
-      html += `<code class="math">y_h(x) ≈ ${trimSeriesString(g.yh)}${g.recognized ? `<span class="recognized-tag">≡ ${g.recognized}</span>` : ''}</code>`;
-      if(g.hasP){
-        html += `<code class="math">y_p(x) ≈ ${trimSeriesString(g.yp)}</code>`;
-      } else {
-        html += `<p class="step-body">Como B(x) = 0, la ecuación es homogénea y la solución particular es y_p(x) = 0.</p>`;
-      }
-      html += `<p class="step-body">La solución con la condición inicial dada corresponde a tomar <strong>C = y(0) = ${cfg.y0}</strong> en la fórmula anterior; esa es la curva trazada en la gráfica.</p>`;
-
-    } else {
-      const g = buildGeneralOrder2(cfg,N);
-      html += `<p class="step-body">Como x₀ = 0 es punto ordinario, el teorema de existencia garantiza dos soluciones linealmente independientes y₁, y₂ de la ecuación homogénea y'' + P(x)y' + Q(x)y = 0, de modo que la solución general de la ecuación completa es:</p>`;
-      html += `<code class="math math-highlight">y(x)  =  C₁ y₁(x)  +  C₂ y₂(x)${g.hasR ? '  +  y_p(x)' : ''}</code>`;
-      html += `<code class="math">y₁(x) ≈ ${trimSeriesString(g.y1)}${g.rec1 ? `<span class="recognized-tag">≡ ${g.rec1}</span>` : ''}\ny₂(x) ≈ ${trimSeriesString(g.y2)}${g.rec2 ? `<span class="recognized-tag">≡ ${g.rec2}</span>` : ''}</code>`;
-      if(g.hasR){
-        html += `<code class="math">y_p(x) ≈ ${trimSeriesString(g.yp)}</code>`;
-      }
-      if(!g.rec1 && !g.rec2){
-        html += `<p class="step-body">Esta herramienta no reconoce a y₁ ni a y₂ como combinaciones de funciones elementales básicas (eˣ, sin x, cos x, sinh x, cosh x): puede tratarse de una función especial, como ocurre con la ecuación de Airy, cuyas soluciones se denotan Ai(x) y Bi(x).</p>`;
-      }
-      html += `<p class="step-body">La solución con las condiciones iniciales dadas corresponde a tomar <strong>C₁ = y(0) = ${cfg.y0}</strong> y <strong>C₂ = y'(0) = ${cfg.y1}</strong>; esa es la curva trazada en la gráfica.</p>`;
-    }
-
-    body.innerHTML = html;
-    panel.style.display = 'block';
-  }
-
-  function renderTable(a){
-    const table = document.getElementById('coefTable');
-    let html = '<tr><th>n</th><th>aₙ</th><th>valor decimal</th></tr>';
-    a.forEach((v,n)=>{
-      html += `<tr><td>${n}</td><td class="coef">${toFraction(v) || '—'}</td><td>${v.toFixed(8)}</td></tr>`;
-    });
-    table.innerHTML = html;
-    document.getElementById('tablePanel').style.display='block';
-  }
-
-  // ---------------------------------------------------------
-  // 6. EVALUACIÓN Y GRÁFICA
-  // ---------------------------------------------------------
-  function evalSeries(a, x){
-    let s=0, p=1;
-    for(let n=0;n<a.length;n++){ s += a[n]*p; p*=x; }
-    return s;
-  }
-
-  function makeExactFn(expr){
-    if(!expr || !expr.trim()) return null;
-    try{
-      const fn = new Function('x', 'with(Math){ return ' + expr + '; }');
-      fn(0.3); // prueba
-      return fn;
-    }catch(e){ return null; }
-  }
-
-  function drawPlot(canvas, xs, seriesY, exactY){
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width = canvas.clientWidth * 2;
-    const H = canvas.height = 360*2;
-    ctx.scale(1,1);
-    ctx.clearRect(0,0,W,H);
-
-    let allY = seriesY.slice();
-    if(exactY) allY = allY.concat(exactY.filter(v=>isFinite(v)));
-    allY = allY.filter(v=>isFinite(v));
-    let yMin = Math.min(...allY), yMax = Math.max(...allY);
-    if(yMin===yMax){ yMin-=1; yMax+=1; }
-    const pad = (yMax-yMin)*0.12;
-    yMin -= pad; yMax += pad;
-
-    const xMin = xs[0], xMax = xs[xs.length-1];
-    const marginL=70, marginR=30, marginT=24, marginB=46;
-    const plotW = W - marginL - marginR;
-    const plotH = H - marginT - marginB;
-
-    function px(x){ return marginL + (x-xMin)/(xMax-xMin)*plotW; }
-    function py(y){ return marginT + (1-(y-yMin)/(yMax-yMin))*plotH; }
-
-    // grid
-    ctx.strokeStyle = 'rgba(238,231,214,0.08)';
-    ctx.lineWidth=1;
-    const xTicks=8, yTicks=6;
-    ctx.font='22px IBM Plex Mono, monospace';
-    ctx.fillStyle='rgba(238,231,214,0.45)';
-    for(let i=0;i<=xTicks;i++){
-      const xv = xMin + (xMax-xMin)*i/xTicks;
-      const X = px(xv);
-      ctx.beginPath(); ctx.moveTo(X,marginT); ctx.lineTo(X,H-marginB); ctx.stroke();
-      ctx.fillText(xv.toFixed(1), X-14, H-marginB+30);
-    }
-    for(let i=0;i<=yTicks;i++){
-      const yv = yMin + (yMax-yMin)*i/yTicks;
-      const Y = py(yv);
-      ctx.beginPath(); ctx.moveTo(marginL,Y); ctx.lineTo(W-marginR,Y); ctx.stroke();
-      ctx.fillText(yv.toFixed(2), 8, Y+6);
-    }
-    // axes (x=0/y=0 if in range)
-    ctx.strokeStyle='rgba(238,231,214,0.35)';
-    if(xMin<=0 && xMax>=0){ ctx.beginPath(); ctx.moveTo(px(0),marginT); ctx.lineTo(px(0),H-marginB); ctx.stroke(); }
-    if(yMin<=0 && yMax>=0){ ctx.beginPath(); ctx.moveTo(marginL,py(0)); ctx.lineTo(W-marginR,py(0)); ctx.stroke(); }
-
-    function chalkLine(color, ys){
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-      ctx.lineJoin='round'; ctx.lineCap='round';
-      ctx.beginPath();
-      let started=false;
-      for(let i=0;i<xs.length;i++){
-        const yv = ys[i];
-        if(!isFinite(yv) || yv<yMin-pad*4 || yv>yMax+pad*4){ started=false; continue; }
-        const X = px(xs[i]), Y = py(yv);
-        if(!started){ ctx.moveTo(X,Y); started=true; } else { ctx.lineTo(X,Y); }
-      }
-      ctx.stroke();
-    }
-
-    if(exactY) chalkLine(getCss('--chalk-teal'), exactY);
-    chalkLine(getCss('--chalk-coral'), seriesY);
-  }
-
-  function getCss(varName){
-    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-  }
-
-  function drawErrorPlot(canvas, xs, errY){
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width = canvas.clientWidth*2;
-    const H = canvas.height = 200*2;
-    ctx.clearRect(0,0,W,H);
-
-    const logErr = errY.map(e => Math.log10(Math.max(e,1e-16)));
-    let yMin = Math.min(...logErr.filter(isFinite));
-    let yMax = Math.max(...logErr.filter(isFinite));
-    if(yMin===yMax){yMin-=1;yMax+=1;}
-    const xMin=xs[0], xMax=xs[xs.length-1];
-    const marginL=70, marginR=30, marginT=16, marginB=40;
-    const plotW=W-marginL-marginR, plotH=H-marginT-marginB;
-    function px(x){ return marginL+(x-xMin)/(xMax-xMin)*plotW; }
-    function py(y){ return marginT+(1-(y-yMin)/(yMax-yMin))*plotH; }
-
-    ctx.strokeStyle='rgba(238,231,214,0.08)';
-    ctx.font='20px IBM Plex Mono, monospace';
-    ctx.fillStyle='rgba(238,231,214,0.45)';
-    for(let i=0;i<=6;i++){
-      const xv = xMin+(xMax-xMin)*i/6;
-      const X = px(xv);
-      ctx.beginPath(); ctx.moveTo(X,marginT); ctx.lineTo(X,H-marginB); ctx.stroke();
-      ctx.fillText(xv.toFixed(1), X-12, H-marginB+26);
-    }
-    const yTicks=4;
-    for(let i=0;i<=yTicks;i++){
-      const yv = yMin+(yMax-yMin)*i/yTicks;
-      const Y=py(yv);
-      ctx.beginPath(); ctx.moveTo(marginL,Y); ctx.lineTo(W-marginR,Y); ctx.stroke();
-      ctx.fillText('1e'+yv.toFixed(0), 6, Y+5);
-    }
-    ctx.strokeStyle = getCss('--chalk-yellow');
-    ctx.lineWidth=4; ctx.lineJoin='round'; ctx.lineCap='round';
-    ctx.beginPath();
-    let started=false;
-    for(let i=0;i<xs.length;i++){
-      if(!isFinite(logErr[i])) { started=false; continue; }
-      const X=px(xs[i]), Y=py(logErr[i]);
-      if(!started){ctx.moveTo(X,Y); started=true;} else {ctx.lineTo(X,Y);}
-    }
-    ctx.stroke();
-  }
-
-  // ---------------------------------------------------------
-  // 7. FLUJO PRINCIPAL
-  // ---------------------------------------------------------
-  document.getElementById('solveBtn').addEventListener('click', ()=>{
-    const errBox = document.getElementById('errorBox');
-    errBox.style.display='none';
-    try{
-      const N = Math.max(4, Math.min(26, parseInt(document.getElementById('nTerms').value,10) || 12));
-      const xR = Math.abs(parseFloat(document.getElementById('xRange').value)) || 3;
-
-      let cfg = {order, y0:null, y1:null, a:null};
-
-      if(order===1){
-        const A = parseCoeffs(document.getElementById('A_coef').value);
-        const B = parseCoeffs(document.getElementById('B_coef').value);
-        const y0 = parseFloat(document.getElementById('y0_1').value);
-        if(isNaN(y0)) throw new Error('y(0) debe ser un número.');
-        const a = solveOrder1(A,B,y0,N);
-        cfg = Object.assign(cfg, {A,B,y0,a});
-      } else {
-        const P = parseCoeffs(document.getElementById('P_coef').value);
-        const Q = parseCoeffs(document.getElementById('Q_coef').value);
-        const R = parseCoeffs(document.getElementById('R_coef').value);
-        const y0 = parseFloat(document.getElementById('y0_2').value);
-        const y1 = parseFloat(document.getElementById('y1_2').value);
-        if(isNaN(y0) || isNaN(y1)) throw new Error("y(0) e y'(0) deben ser números.");
-        const a = solveOrder2(P,Q,R,y0,y1,N);
-        cfg = Object.assign(cfg, {P,Q,R,y0,y1,a});
-      }
-
-      renderSteps(buildSteps(cfg));
-      renderGeneralSolution(cfg,N);
-      renderTable(cfg.a);
-
-      // gráfica
-      const xs=[]; const steps=400;
-      for(let i=0;i<=steps;i++) xs.push(-xR + (2*xR)*i/steps);
-      const seriesY = xs.map(x=>evalSeries(cfg.a, x));
-
-      const exactExpr = document.getElementById('exactSol').value;
-      const exactFn = makeExactFn(exactExpr);
-      const exactY = exactFn ? xs.map(x=>{ try{ return exactFn(x);}catch(e){return NaN;} }) : null;
-
-      document.getElementById('plotPanel').style.display='block';
-      document.getElementById('legendExact').style.display = exactY ? 'inline-flex' : 'none';
-      drawPlot(document.getElementById('plotCanvas'), xs, seriesY, exactY);
-
-      const noteEl = document.getElementById('plotNote');
-      const errWrap = document.getElementById('errorWrap');
-      if(exactY){
-        const errY = xs.map((x,i)=> Math.abs(exactY[i]-seriesY[i]));
-        drawErrorPlot(document.getElementById('errorCanvas'), xs, errY);
-        errWrap.style.display='block';
-        noteEl.textContent = `Comparando con la solución exacta ingresada. El error crece cerca de los bordes del rango por truncar la serie a ${N} términos: agrega más términos para mejorar la precisión en ese rango.`;
-      } else {
-        errWrap.style.display='none';
-        noteEl.textContent = exactExpr.trim()
-          ? 'No se pudo interpretar la solución exacta ingresada; se muestra solo la serie de potencia.'
-          : `Serie de potencia truncada a ${N} términos. Revisa el panel "Solución general" para ver si la herramienta reconoció una forma cerrada.`;
-      }
-
-      document.getElementById('stepsContainer').scrollIntoView({behavior:'smooth', block:'nearest'});
-
-    }catch(e){
-      errBox.textContent = 'Error: ' + e.message;
-      errBox.style.display='block';
-    }
-  });
-
-  window.addEventListener('resize', ()=>{
-    const btn = document.getElementById('solveBtn');
-    if(document.getElementById('plotPanel').style.display==='block') btn.click();
-  });
-
-})();
-</script>
+<script src="script.js"></script>
 </body>
 </html>
